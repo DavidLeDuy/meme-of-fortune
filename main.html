@@ -1,0 +1,2230 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meme Wheel of Fortune 🎰🔥</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;700;800;900&family=Permanent+Marker&display=swap"
+    rel="stylesheet">
+
+  <script type="text/javascript" src="https://js.monitor.azure.com/scripts/b/ai.2.min.js"></script>
+  <script src="env.js" onerror="void 0;"></script>
+  <script type="text/javascript">
+    var appInsightsInstance = null;
+    // Uses local env.js in local testing, or GitHub Actions placeholder in deployment
+    const azureConnectionString = window.ENV_AZURE_KEY || "__APPINSIGHTS_CONNECTION_STRING__";
+    try {
+      var snippet = {
+        config: {
+          connectionString: azureConnectionString
+        }
+      };
+      var init = new Microsoft.ApplicationInsights.ApplicationInsights(snippet);
+      appInsightsInstance = init.loadAppInsights();
+      appInsightsInstance.trackPageView({ name: 'MemeWheelOfFortune_Main' });
+    } catch (err) {
+      console.warn("Application Insights SDK load deferred or blocked by browser extensions:", err);
+    }
+  </script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            impact: ['Anton', 'Impact', 'sans-serif'],
+            marker: ['"Permanent Marker"', 'cursive'],
+          },
+          colors: {
+            rarity: {
+              common: '#10B981',
+              rare: '#3B82F6',
+              epic: '#A855F7',
+              legendary: '#F59E0B',
+              mythic: '#EF4444',
+            }
+          },
+          animation: {
+            'pulse-glow': 'pulseGlow 2s infinite alternate',
+            'bounce-short': 'bounceShort 0.15s ease-out',
+            'shimmer': 'shimmer 2s infinite linear',
+            'float': 'float 3s ease-in-out infinite',
+          },
+          keyframes: {
+            pulseGlow: {
+              '0%': { boxShadow: '0 0 15px rgba(245, 158, 11, 0.4)' },
+              '100%': { boxShadow: '0 0 35px rgba(239, 68, 68, 0.8)' },
+            },
+            bounceShort: {
+              '0%': { transform: 'rotate(0deg)' },
+              '50%': { transform: 'rotate(-25deg)' },
+              '100%': { transform: 'rotate(0deg)' }
+            },
+            shimmer: {
+              '0%': { backgroundPosition: '-200% 0' },
+              '100%': { backgroundPosition: '200% 0' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-6px)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #090d16;
+      background-image:
+        radial-gradient(circle at 50% 20%, rgba(124, 58, 237, 0.18) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(239, 68, 68, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 20% 70%, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
+      color: #f1f5f9;
+      user-select: none;
+    }
+
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-card {
+      background: rgba(30, 41, 59, 0.65);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .glass-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 255, 255, 0.25);
+      box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.6);
+    }
+
+    .wheel-shadow {
+      filter: drop-shadow(0 0 30px rgba(124, 58, 237, 0.45));
+    }
+
+    /* Ticker pin recoil animation */
+    #ticker-pin {
+      transform-origin: 50% 10%;
+      transition: transform 0.06s ease-out;
+    }
+
+    .ticker-hit {
+      transform: rotate(-28deg) scale(1.15) !important;
+    }
+
+    /* Clean custom scrollbar */
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 8px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 8px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col font-sans overflow-x-hidden">
+
+  <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50 w-full h-full"></canvas>
+
+  <header class="w-full glass-panel sticky top-0 z-40 border-b border-slate-800/80 px-4 py-3">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+
+      <!-- Brand Title -->
+      <div class="flex items-center space-x-3">
+        <div
+          class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-purple-600 to-rose-500 flex items-center justify-center text-2xl shadow-lg animate-pulse">
+          🎰
+        </div>
+        <div>
+          <h1
+            class="text-xl sm:text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-rose-400 to-purple-400">
+            MEME OF FORTUNE
+          </h1>
+          <p class="text-xs text-slate-400 font-medium hidden sm:block">Spin 15 Active Wheel Slices • 100 Iconic Memes
+            Pool</p>
+        </div>
+      </div>
+
+      <!-- German Player Name Tag & Telemetry Bar -->
+      <div class="flex items-center flex-wrap gap-2 sm:gap-3">
+
+        <!-- Azure Telemetry Active Indicator -->
+        <div id="telemetry-badge"
+          class="flex items-center bg-slate-900/90 rounded-xl px-2.5 py-1.5 border border-emerald-500/30 text-[11px] font-bold text-emerald-400 shadow-sm"
+          title="Azure Application Insights Telemetry Connected">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping mr-2"></span>
+          <span class="hidden md:inline">Azure Telemetry Active 🟢</span>
+          <span class="md:hidden">Azure 🟢</span>
+        </div>
+
+        <!-- German Player Nickname Badge -->
+        <div
+          class="flex items-center bg-gradient-to-r from-purple-950/80 to-slate-900 rounded-xl px-3 py-1.5 border border-purple-500/30 text-xs shadow-md">
+          <span class="text-purple-300 mr-1.5 font-semibold">Spieler:</span>
+          <span id="player-nickname-display"
+            class="font-extrabold text-amber-300 mr-2 max-w-[120px] sm:max-w-[160px] truncate">Schnüffelnder
+            Adler</span>
+          <button id="edit-player-btn"
+            class="text-slate-400 hover:text-white p-1 hover:bg-purple-900/40 rounded transition-colors hidden"
+            title="Namenseingabe / Nickname bearbeiten">
+            ✏️
+          </button>
+          <button id="randomize-player-btn"
+            class="text-amber-400 hover:text-amber-300 p-1 hover:bg-purple-900/40 rounded transition-colors text-xs font-bold hidden"
+            title="Zufälliger deutscher Name">
+            🎲 Neu
+          </button>
+        </div>
+
+        <!-- Spin Stats Badge -->
+        <div
+          class="flex items-center bg-slate-900/90 rounded-xl px-3 py-1.5 border border-slate-800 text-xs sm:text-sm">
+          <span class="text-slate-400 mr-2">Spins:</span>
+          <span id="stat-spins" class="font-extrabold text-amber-400">0</span>
+        </div>
+
+        <!-- Rank Badge -->
+        <div
+          class="flex items-center bg-slate-900/90 rounded-xl px-3 py-1.5 border border-slate-800 text-xs sm:text-sm lg:flex">
+          <span class="text-slate-400 mr-2">Rank:</span>
+          <span id="stat-rank" class="font-bold text-purple-400">Lurker 🗿</span>
+        </div>
+
+        <!-- Sound FX Toggle -->
+        <button id="audio-toggle"
+          class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors border border-slate-700/50"
+          title="Toggle Sound FX">
+          <span id="audio-icon" class="text-base">🔊</span>
+        </button>
+
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 flex flex-col gap-8">
+
+    <!-- Upper Section: Canvas Wheel Arena + Breakdown Log -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+
+      <!-- Wheel Column (7 cols) -->
+      <div class="lg:col-span-7 flex flex-col items-center justify-center relative py-2">
+
+        <!-- Wheel Outer Wrapper -->
+        <div
+          class="relative w-full max-w-[420px] sm:max-w-[480px] aspect-square flex items-center justify-center wheel-shadow">
+
+          <!-- Top Ticker / Arrow Indicator Pin -->
+          <div class="absolute -top-4 z-30 flex flex-col items-center drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]">
+            <svg id="ticker-pin" class="w-10 h-12 text-rose-500 fill-current" viewBox="0 0 24 32">
+              <path d="M12 32 L2 6 Q2 0 12 0 Q22 0 22 6 Z" />
+              <circle cx="12" cy="8" r="3.5" fill="#ffffff" />
+            </svg>
+          </div>
+
+          <!-- Interactive Wheel Canvas -->
+          <canvas id="wheel-canvas" width="550" height="550" class="w-full h-full cursor-pointer rounded-full"></canvas>
+
+          <!-- Center Hub Spin Button -->
+          <button id="center-spin-btn"
+            class="absolute z-20 w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-slate-900 border-4 border-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.6)] flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition-all group">
+            <span class="text-2xl sm:text-3xl group-hover:rotate-12 transition-transform">🔥</span>
+            <span class="text-[10px] sm:text-xs font-black tracking-wider text-amber-400 uppercase mt-0.5">SPIN</span>
+          </button>
+        </div>
+
+        <!-- Action Spin Button + Shuffle Button -->
+        <div class="mt-6 w-full max-w-md flex flex-col items-center gap-3">
+          <div class="flex items-center gap-2 w-full">
+            <button id="spin-btn"
+              class="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 hover:from-amber-400 hover:via-rose-400 hover:to-purple-500 text-white font-black text-xl sm:text-2xl tracking-wider shadow-[0_0_30px_rgba(245,158,11,0.4)] hover:shadow-[0_0_45px_rgba(245,158,11,0.7)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase flex items-center justify-center gap-3">
+              <span>SPIN WHEEL</span>
+              <span class="text-2xl">🎯</span>
+            </button>
+
+            <button id="shuffle-wheel-btn"
+              class="hidden py-4 px-4 sm:px-5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700/80 text-amber-400 font-bold text-xs sm:text-sm tracking-wider shadow-md hover:scale-105 active:scale-95 transition-all flex flex-col items-center justify-center gap-1 shrink-0"
+              title="Randomize slices from total pool">
+              <span class="text-xl">🔀</span>
+              <span class="text-[10px] uppercase font-black">Shuffle</span>
+            </button>
+
+          </div>
+          <p class="text-xs text-slate-400 font-medium text-center">Click spin or center hub • Spacebar shortcut •
+            Randomizes 15 slices</p>
+        </div>
+      </div>
+
+      <!-- Right Column: Breakdown + Recent Pull Log (5 cols) -->
+      <div class="lg:col-span-5 flex flex-col gap-5">
+
+        <!-- Wheel Rarity Breakdown Card -->
+        <div class="glass-panel rounded-2xl p-5 border border-slate-800">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
+            <span>Wheel Tier Breakdown</span>
+            <span id="slice-count-badge"
+              class="text-xs bg-slate-800 text-amber-400 border border-slate-700 px-2.5 py-0.5 rounded-full font-bold">15
+              Slices Active</span>
+          </h2>
+
+          <div class="space-y-2">
+            <div
+              class="flex items-center justify-between text-xs font-semibold p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-800/40 text-emerald-300">
+              <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> Common
+                Tier</span>
+              <span class="font-mono" id="prob-common">Common Slices</span>
+            </div>
+            <div
+              class="flex items-center justify-between text-xs font-semibold p-2.5 rounded-xl bg-blue-950/40 border border-blue-800/40 text-blue-300">
+              <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500"></span> Rare
+                Tier</span>
+              <span class="font-mono" id="prob-rare">Rare Slices</span>
+            </div>
+            <div
+              class="flex items-center justify-between text-xs font-semibold p-2.5 rounded-xl bg-purple-950/40 border border-purple-800/40 text-purple-300">
+              <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-purple-500"></span> Epic
+                Tier</span>
+              <span class="font-mono" id="prob-epic">Epic Slices</span>
+            </div>
+            <div
+              class="flex items-center justify-between text-xs font-semibold p-2.5 rounded-xl bg-amber-950/40 border border-amber-800/40 text-amber-300">
+              <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-500"></span> Legendary
+                Tier</span>
+              <span class="font-mono" id="prob-legendary">Legendary Slices</span>
+            </div>
+            <div
+              class="flex items-center justify-between text-xs font-semibold p-2.5 rounded-xl bg-rose-950/50 border border-rose-800/50 text-rose-300 animate-pulse">
+              <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-rose-500"></span> Mythic
+                Tier</span>
+              <span class="font-mono" id="prob-mythic">Mythic Slices</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Pulls Live Feed Log -->
+        <div class="glass-panel rounded-2xl p-5 border border-slate-800 flex flex-col h-[280px]">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
+            <span>Your recent Drops</span>
+            <span class="text-xs text-slate-500 font-mono">History</span>
+          </h2>
+
+          <div id="recent-pulls-list" class="flex-grow overflow-y-auto custom-scroll space-y-2 pr-1">
+            <div class="text-center text-slate-500 text-xs py-12 italic">
+              No spins yet! Spin the wheel to unlock dank memes.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="mt-2">
+      <div class="glass-panel rounded-3xl p-6 border border-slate-800/80">
+
+        <!-- Vault Header & Filters -->
+        <div
+          class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-800">
+          <div>
+            <div class="flex items-center gap-3 flex-wrap">
+              <h2 class="text-2xl font-black tracking-tight text-white">THE DANK-DEX VAULT</h2>
+              <span id="collection-badge"
+                class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold px-3 py-1 rounded-full">
+                0 / 36 Unlocked (0%)
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">Collect all real meme templates from the pool to reach Giga-Meme God
+              status!</p>
+          </div>
+
+          <!-- Search & Tier Filter Chips -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <input id="search-input" type="text" placeholder="Search meme templates..."
+              class="bg-slate-900 border border-slate-800 text-xs text-slate-200 rounded-xl px-3 py-2 outline-none focus:border-amber-500 transition-colors placeholder-slate-500">
+
+            <div
+              class="flex items-center bg-slate-900 rounded-xl p-1 border border-slate-800 text-xs overflow-x-auto custom-scroll">
+              <button data-filter="all"
+                class="filter-btn px-3 py-1.5 rounded-lg font-bold bg-amber-500 text-slate-950 transition-all">All</button>
+              <button data-filter="Common"
+                class="filter-btn px-3 py-1.5 rounded-lg font-bold text-slate-400 hover:text-white transition-all">Common</button>
+              <button data-filter="Rare"
+                class="filter-btn px-3 py-1.5 rounded-lg font-bold text-slate-400 hover:text-white transition-all">Rare</button>
+              <button data-filter="Epic"
+                class="filter-btn px-3 py-1.5 rounded-lg font-bold text-slate-400 hover:text-white transition-all">Epic</button>
+              <button data-filter="Legendary"
+                class="filter-btn px-3 py-1.5 rounded-lg font-bold text-slate-400 hover:text-white transition-all">Legendary</button>
+              <button data-filter="Mythic"
+                class="filter-btn px-3 py-1.5 rounded-lg font-bold text-slate-400 hover:text-white transition-all">Mythic</button>
+            </div>
+
+            <button id="reset-progress-btn"
+              class="hidden text-xs text-slate-500 hover:text-rose-400 transition-colors px-2 py-1 underline">
+              Reset Vault
+            </button>
+          </div>
+        </div>
+
+        <!-- Collection Progress Bar -->
+        <div class="w-full bg-slate-900 rounded-full h-3 mb-6 overflow-hidden border border-slate-800 p-0.5">
+          <div id="vault-progress-bar"
+            class="h-full rounded-full bg-gradient-to-r from-emerald-500 via-purple-500 to-amber-400 transition-all duration-500 w-0">
+          </div>
+        </div>
+
+        <!-- Meme Grid Container (Strictly 4 rows per page: 12 on Desktop, 8 on Mobile) -->
+        <div id="meme-vault-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 min-h-[480px]">
+          <!-- Cards injected dynamically -->
+        </div>
+
+        <!-- Interactive 4-Row Pagination Controls -->
+        <div
+          class="mt-6 pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="text-xs text-slate-400 font-medium">
+            Showing <span id="page-item-range" class="text-white font-bold">1 - 12</span> of <span id="page-item-total"
+              class="text-white font-bold">36</span> memes (<span id="page-row-count" class="text-amber-400 font-bold">4
+              Rows / Page</span>)
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <button id="pg-prev-btn"
+              class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold text-slate-300 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1">
+              <span>◀</span> Prev
+            </button>
+
+            <div id="pg-numbers-container" class="flex items-center space-x-1.5">
+              <!-- Page numbers injected dynamically -->
+            </div>
+
+            <button id="pg-next-btn"
+              class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold text-slate-300 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1">
+              Next <span>▶</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <div id="win-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/85 backdrop-blur-md hidden opacity-0 transition-opacity duration-300 overflow-x-hidden">
+
+    <!-- Main Modal Panel Container (Overflow safe wrapper) -->
+    <div
+      class="relative w-full max-w-lg glass-panel rounded-3xl p-4 sm:p-6 border-2 border-amber-500/50 shadow-[0_0_60px_rgba(245,158,11,0.3)] transform scale-90 transition-transform duration-300 flex flex-col items-center text-center max-h-[92vh] overflow-hidden">
+
+      <!-- Confetti Glow background effect STRICTLY WRAPPED to prevent layout scrollbars -->
+      <div class="absolute inset-0 overflow-hidden pointer-events-none rounded-3xl -z-10">
+        <div id="modal-glow"
+          class="absolute -inset-10 bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 opacity-20 blur-2xl">
+        </div>
+      </div>
+
+      <!-- Modal Internal Scroll Area for Content -->
+      <div class="w-full flex flex-col items-center max-h-[85vh] overflow-y-auto custom-scroll pr-1">
+
+        <!-- Tier Tag -->
+        <span id="modal-tier-tag"
+          class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-widest bg-amber-500 text-slate-950 mb-2 shadow-md shrink-0">
+          LEGENDARY PULL!
+        </span>
+
+        <!-- Meme Title - Always Visible Distinct Block -->
+        <h3 id="modal-meme-title"
+          class="text-xl sm:text-2xl font-black text-white mb-3 w-full break-words px-2 leading-tight shrink-0">
+          DRAKE HOTLINE BLING
+        </h3>
+
+        <!-- Dynamic Meme Canvas Box -->
+        <div
+          class="w-full max-w-full aspect-square max-h-[260px] sm:max-h-[300px] rounded-2xl bg-slate-950 border border-slate-700/80 overflow-hidden relative mb-4 shadow-inner flex items-center justify-center shrink-0">
+          <canvas id="modal-meme-canvas" width="500" height="500" class="w-full h-full object-contain"></canvas>
+        </div>
+
+        <!-- Caption Controls Tool -->
+        <div
+          class="w-full space-y-3 mb-5 text-left bg-slate-900/90 p-3.5 sm:p-4 rounded-2xl border border-slate-800 shrink-0">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Meme Studio Captions</span>
+            <button id="auto-caption-btn"
+              class="text-xs font-bold bg-purple-600/80 hover:bg-purple-500 text-white px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1">
+              <span>🎲</span> Auto-Caption
+            </button>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Top Text</label>
+            <input id="input-top-text" type="text" placeholder="TYPE TOP TEXT..."
+              class="w-full bg-slate-950 border border-slate-700 text-xs font-bold text-white rounded-xl px-3 py-2 outline-none focus:border-amber-400">
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Bottom Text</label>
+            <input id="input-bottom-text" type="text" placeholder="TYPE BOTTOM TEXT..."
+              class="w-full bg-slate-950 border border-slate-700 text-xs font-bold text-white rounded-xl px-3 py-2 outline-none focus:border-amber-400">
+          </div>
+
+          <div class="flex items-center justify-between gap-4 pt-1">
+            <div class="flex-1">
+              <label class="block text-[10px] font-bold text-slate-400 uppercase">Font Size</label>
+              <input id="input-font-size" type="range" min="20" max="60" value="38" class="w-full accent-amber-500">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase">Text Color</label>
+              <input id="input-text-color" type="color" value="#ffffff"
+                class="w-8 h-8 rounded border-none bg-transparent cursor-pointer">
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full shrink-0">
+          <button id="download-meme-btn"
+            class="py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-xs tracking-wider uppercase shadow-lg transition-all flex items-center justify-center gap-2">
+            <span>💾</span> Download PNG
+          </button>
+          <button id="modal-close-btn"
+            class="py-3 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-black text-xs tracking-wider uppercase shadow-lg transition-all">
+            CLAIM & SPIN AGAIN
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div id="player-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+    <div
+      class="w-full max-w-sm glass-panel rounded-3xl p-6 border border-purple-500/40 shadow-2xl flex flex-col items-center text-center">
+      <span class="text-3xl mb-2">🎭</span>
+      <h3 class="text-xl font-extrabold text-white mb-1">Deinen Namen Ändern</h3>
+      <p class="text-xs text-slate-400 mb-4">Wähle deinen persönlichen deutschen Spitznamen für das Wheel of Fortune!
+      </p>
+
+      <input id="player-name-input" type="text" maxlength="32" placeholder="z.B. Schnüffelnder Adler"
+        class="w-full bg-slate-950 border border-slate-700 text-sm font-bold text-amber-300 text-center rounded-xl px-4 py-3 outline-none focus:border-amber-400 mb-4">
+
+      <div class="grid grid-cols-2 gap-2 w-full">
+        <button id="player-name-random-btn"
+          class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 font-bold text-xs">
+          🎲 Zufall
+        </button>
+        <button id="player-name-save-btn"
+          class="py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs">
+          Speichern
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Banner -->
+  <div id="toast-msg"
+    class="fixed bottom-6 right-6 z-50 bg-slate-900 border border-amber-500/50 text-amber-300 text-xs font-bold px-4 py-3 rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-2">
+    <span>✨</span> <span id="toast-text">Toast message</span>
+  </div>
+
+  <script>
+    // Funny German Adjectives and Animals list generator
+    const GERMAN_ADJECTIVES = [
+      "Schnüffelnder", "Verwirrter", "Knuspriger", "Hektisches", "Glitzernder",
+      "Tanzender", "Schlafender", "Wütender", "Flauschiger", "Verpeilter",
+      "Muskulöser", "Laser-schießender", "Dankbarer", "Mystischer", "Chaos-liebender",
+      "Übermütiger", "Sonnenbrillen-tragender", "Kaffeetrinkender", "Legendärer", "Mutiger"
+    ];
+
+    const GERMAN_ANIMALS = [
+      "Adler", "Otter", "Mops", "Eichhörnchen", "Waschbär",
+      "Dachs", "Pinguin", "Panda", "Koala", "Igel",
+      "Hamster", "Biber", "Lama", "Alpaka", "Fuchs",
+      "Grizzly", "Seehund", "Erdmännchen", "Hasenfuß", "Luchs"
+    ];
+
+    function generateGermanName() {
+      const adj = GERMAN_ADJECTIVES[Math.floor(Math.random() * GERMAN_ADJECTIVES.length)];
+      const animal = GERMAN_ANIMALS[Math.floor(Math.random() * GERMAN_ANIMALS.length)];
+      return `${adj} ${animal}`;
+    }
+
+    // Complete Offline Fallback Pool of 36+ Iconic Memes
+    const FALLBACK_MEMES_POOL = []
+    const FALLBACK_MEMES_POOL1 = [
+      {
+        id: 'drake',
+        title: "Drake Hotline Bling",
+        tier: 'Epic',
+        url: 'https://i.imgflip.com/30b1gx.jpg',
+        sliceColor: '#A855F7',
+        topText: "DOING ACTUAL WORK",
+        bottomText: "SPINNING MEME WHEEL FOR 4 HOURS",
+        captions: [
+          ["DOING ACTUAL WORK", "SPINNING MEME WHEEL FOR 4 HOURS"],
+          ["COOKING A BALANCED MEAL", "ORDERING TAKEOUT AGAIN"],
+          ["STUDYING FOR THE EXAM", "WATCHING 3-HOUR YOUTUBE DOCUMENTARY"]
+        ]
+      },
+      {
+        id: 'distracted-bf',
+        title: "Distracted Boyfriend",
+        tier: 'Epic',
+        url: 'https://i.imgflip.com/1ur9b0.jpg',
+        sliceColor: '#9333EA',
+        topText: "LOOKING AT DANK MEMES",
+        bottomText: "MY RESPONSIBILITIES",
+        captions: [
+          ["LOOKING AT DANK MEMES", "MY RESPONSIBILITIES"],
+          ["NEW GRAPHICS CARD", "RENT MONEY"],
+          ["ANOTHER WHEEL SPIN", "GOING TO BED ON TIME"]
+        ]
+      },
+      {
+        id: 'doge',
+        title: "Doge",
+        tier: 'Rare',
+        url: 'https://i.imgflip.com/4t0m.jpg',
+        sliceColor: '#3B82F6',
+        topText: "MUCH WHEEL",
+        bottomText: "VERY SPIN. SUCH LUCK. WOW.",
+        captions: [
+          ["MUCH WHEEL", "VERY SPIN. SUCH LUCK. WOW."],
+          ["MANY MEME", "SO RARE. VERY UNLOCKED."],
+          ["WOW", "SUCH DANKNESS"]
+        ]
+      },
+      {
+        id: 'woman-yelling-cat',
+        title: "Woman Yelling at Cat",
+        tier: 'Legendary',
+        url: 'https://i.imgflip.com/345v97.jpg',
+        sliceColor: '#F59E0B',
+        topText: "YOU CAN'T SPEND ALL DAY SPINNING A WHEEL!",
+        bottomText: "ME: WATCH ME SPIN AGAIN",
+        captions: [
+          ["YOU CAN'T SPEND ALL DAY SPINNING A WHEEL!", "ME: WATCH ME SPIN AGAIN"],
+          ["YOU SAID YOU'D BE READY IN 5 MINUTES!", "5 MINUTES IN DOG YEARS"],
+          ["IT'S NOT A BUG, IT'S AN UNDOCUMENTED FEATURE!", "THE COMPILER:"]
+        ]
+      },
+      {
+        id: 'gigachad',
+        title: "Gigachad",
+        tier: 'Legendary',
+        url: 'https://i.imgflip.com/26am.jpg',
+        sliceColor: '#D97706',
+        topText: "SPINS WHEEL ONCE",
+        bottomText: "GETS MYTHIC, REFUSES TO ELABORATE",
+        captions: [
+          ["SPINS WHEEL ONCE", "GETS MYTHIC, REFUSES TO ELABORATE"],
+          ["YES I SPENT ALL DAY COLLECTING MEMES", "HOW COULD YOU TELL?"],
+          ["WRITES CLEAN RESPONSIVE CODE", "IT WORKS PERFECTLY"]
+        ]
+      },
+      {
+        id: 'trade-offer',
+        title: "Trade Offer",
+        tier: 'Rare',
+        url: 'https://i.imgflip.com/54hjww.jpg',
+        sliceColor: '#2563EB',
+        topText: "I RECEIVE: YOUR TIME",
+        bottomText: "YOU RECEIVE: UNLIMITED DANK MEMES",
+        captions: [
+          ["I RECEIVE: YOUR TIME", "YOU RECEIVE: UNLIMITED DANK MEMES"],
+          ["I RECEIVE: 1 COFFEE", "YOU RECEIVE: 8 HOURS OF CODE"],
+          ["I RECEIVE: A SPIN", "YOU RECEIVE: COMMON TIER AGAIN"]
+        ]
+      },
+      {
+        id: 'roll-safe',
+        title: "Roll Safe Think About It",
+        tier: 'Common',
+        url: 'https://i.imgflip.com/1h7in3.jpg',
+        sliceColor: '#10B981',
+        topText: "YOU CAN'T LOSE THE WHEEL",
+        bottomText: "IF YOU NEVER STOP SPINNING",
+        captions: [
+          ["YOU CAN'T LOSE THE WHEEL", "IF YOU NEVER STOP SPINNING"],
+          ["NO BUGS IN PRODUCTION", "IF YOU NEVER DEPLOY"],
+          ["CAN'T FAIL THE TEST", "IF YOU DON'T SHOW UP"]
+        ]
+      },
+      {
+        id: 'cricket-fan',
+        title: "Disappointed Fan",
+        tier: 'Rare',
+        url: 'https://i.imgflip.com/392itq.jpg',
+        sliceColor: '#1D4ED8',
+        topText: "WHEN YOU SPIN FOR MYTHIC",
+        bottomText: "AND GET COMMON AGAIN",
+        captions: [
+          ["WHEN YOU SPIN FOR MYTHIC", "AND GET COMMON AGAIN"],
+          ["WHEN THE CODE COMPILES", "BUT HAS 50 RUNTIME ERRORS"],
+          ["WHEN YOU ORDER MEDIUM RARE", "AND IT COMES WELL DONE"]
+        ]
+      },
+      {
+        id: 'success-kid',
+        title: "Success Kid",
+        tier: 'Rare',
+        url: 'https://i.imgflip.com/1bhk.jpg',
+        sliceColor: '#3B82F6',
+        topText: "LANDED ON LEGENDARY",
+        bottomText: "ON THE VERY FIRST TRY",
+        captions: [
+          ["LANDED ON LEGENDARY", "ON THE VERY FIRST TRY"],
+          ["FIXED THE BUG", "FIRST TRY WITHOUT STACKOVERFLOW"],
+          ["GUESSED THE PASSWORD", "FIRST TRY"]
+        ]
+      },
+      {
+        id: 'pikachu',
+        title: "Surprised Pikachu",
+        tier: 'Common',
+        url: 'https://i.imgflip.com/2hgfw0.jpg',
+        sliceColor: '#059669',
+        topText: "SPINS WHEEL FOR 100TH TIME",
+        bottomText: "IS SURPRISED IT'S STILL ADDICTIVE",
+        captions: [
+          ["SPINS WHEEL FOR 100TH TIME", "IS SURPRISED IT'S STILL ADDICTIVE"],
+          ["DOESN'T SAVE PROGRESS", "LOSES DATA"],
+          ["STAYS UP TILL 4 AM", "TIRED THE NEXT DAY"]
+        ]
+      },
+      {
+        id: 'arthur-fist',
+        title: "Arthur's Fist",
+        tier: 'Common',
+        url: 'https://i.imgflip.com/1325p3.jpg',
+        sliceColor: '#14B8A6',
+        topText: "WHEN THE SLICE STOPS",
+        bottomText: "ONE PIXEL AWAY FROM MYTHIC",
+        captions: [
+          ["WHEN THE SLICE STOPS", "ONE PIXEL AWAY FROM MYTHIC"],
+          ["WHEN THE WI-FI DROPS", "DURING AN ONLINE GAME"],
+          ["WHEN SOMEONE TAKES", "THE LAST SLICE OF PIZZA"]
+        ]
+      },
+      {
+        id: 'change-my-mind',
+        title: "Change My Mind",
+        tier: 'Common',
+        url: 'https://i.imgflip.com/24y43o.jpg',
+        sliceColor: '#0D9488',
+        topText: "MEME FORTUNE IS THE BEST GAME",
+        bottomText: "CHANGE MY MIND",
+        captions: [
+          ["MEME FORTUNE IS THE BEST GAME", "CHANGE MY MIND"],
+          ["TABS ARE BETTER THAN SPACES", "CHANGE MY MIND"],
+          ["DARK MODE IS MANDATORY", "CHANGE MY MIND"]
+        ]
+      },
+      {
+        id: 'two-buttons',
+        title: "Two Buttons",
+        tier: 'Epic',
+        url: 'https://i.imgflip.com/1g8my4.jpg',
+        sliceColor: '#7E22CE',
+        topText: "GO TO SLEEP NOW",
+        bottomText: "ONE MORE WHEEL SPIN",
+        captions: [
+          ["GO TO SLEEP NOW", "ONE MORE WHEEL SPIN"],
+          ["FIX THE BUG PROPERLY", "ADD A TRY-CATCH BLOCK"],
+          ["SAVE MONEY", "BUY MORE MEMES"]
+        ]
+      },
+      {
+        id: 'exit-ramp',
+        title: "Left Exit 12 Off Ramp",
+        tier: 'Common',
+        url: 'https://i.imgflip.com/22bdq6.jpg',
+        sliceColor: '#10B981',
+        topText: "PRODUCTIVE WORK",
+        bottomText: "SPINNING MEME WHEEL",
+        captions: [
+          ["PRODUCTIVE WORK", "SPINNING MEME WHEEL"],
+          ["HEALTHY DIET", "LATE NIGHT SNACKS"],
+          ["CLEANING THE ROOM", "PLAYING VIDEO GAMES"]
+        ]
+      },
+      {
+        id: 'cursed-elmo',
+        title: "Cursed Fire Elmo",
+        tier: 'Mythic',
+        url: 'https://i.imgflip.com/1x6f5x.jpg',
+        sliceColor: '#EF4444',
+        topText: "RISE MY DANK MEMES",
+        bottomText: "THE FIRE RISES",
+        captions: [
+          ["RISE MY DANK MEMES", "THE FIRE RISES"],
+          ["UNLOCKED THE MYTHIC TIER", "ABSOLUTE POWER!"],
+          ["WHEN THE CODE WORKS", "AND YOU DON'T KNOW WHY"]
+        ]
+      },
+      {
+        id: 'evil-kermit',
+        title: "Evil Kermit",
+        tier: 'Epic',
+        url: 'https://i.imgflip.com/1e7ql7.jpg',
+        sliceColor: '#8B5CF6',
+        topText: "ME: I SHOULD SAVE MY TIME",
+        bottomText: "INNER ME: SPIN THE WHEEL AGAIN",
+        captions: [
+          ["ME: I SHOULD SAVE MY TIME", "INNER ME: SPIN THE WHEEL AGAIN"],
+          ["ME: GO TO BED", "INNER ME: WATCH ONE MORE VIDEO"],
+          ["ME: WRITE TESTS", "INNER ME: SHIP TO PRODUCTION"]
+        ]
+      },
+      {
+        id: 'disaster-girl',
+        title: "Disaster Girl",
+        tier: 'Legendary',
+        url: 'https://i.imgflip.com/23ls.jpg',
+        sliceColor: '#F59E0B',
+        topText: "WHEN THE BUG TAKES DOWN",
+        bottomText: "THE ENTIRE PRODUCTION SERVER",
+        captions: [
+          ["WHEN THE BUG TAKES DOWN", "THE ENTIRE PRODUCTION SERVER"],
+          ["I DELETED THE DATABASE", "AND BLAMED INTERNET DISRUPTION"],
+          ["SPUN THE WHEEL 500 TIMES", "MY LAPTOP IS A HEATER NOW"]
+        ]
+      },
+      {
+        id: 'one-does-not-simply',
+        title: "One Does Not Simply",
+        tier: 'Common',
+        url: 'https://i.imgflip.com/1bij.jpg',
+        sliceColor: '#10B981',
+        topText: "ONE DOES NOT SIMPLY",
+        bottomText: "SPIN THE WHEEL ONLY ONCE",
+        captions: [
+          ["ONE DOES NOT SIMPLY", "SPIN THE WHEEL ONLY ONCE"],
+          ["ONE DOES NOT SIMPLY", "CENTER A DIV ON FIRST TRY"],
+          ["ONE DOES NOT SIMPLY", "EXIT VIM"]
+        ]
+      },
+      {
+        id: 'batman-slap',
+        title: "Batman Slapping Robin",
+        tier: 'Rare',
+        url: 'https://i.imgflip.com/9ehk.jpg',
+        sliceColor: '#3B82F6',
+        topText: "ROBIN: I THINK WE SHOULD--",
+        bottomText: "BATMAN: SPIN THE WHEEL!",
+        captions: [
+          ["ROBIN: I THINK WE SHOULD--", "BATMAN: SPIN THE WHEEL!"],
+          ["ROBIN: BUT THE SPEC SAYS--", "BATMAN: IT WORKS!"],
+          ["ROBIN: SHOULD WE USE LIGHT MODE?", "BATMAN: DARK MODE ALWAYS!"]
+        ]
+      },
+      {
+        id: 'ancient-aliens',
+        title: "Ancient Aliens Guy",
+        tier: 'Common',
+        url: 'https://i.imgflip.com/1ihzfe.jpg',
+        sliceColor: '#059669',
+        topText: "HOW DID THIS CODE WORK?",
+        bottomText: "ALIENS.",
+        captions: [
+          ["HOW DID THIS CODE WORK?", "ALIENS."],
+          ["WHY IS THE WHEEL SO ADDICTIVE?", "ALIENS."],
+          ["WHERE DID MY FREE TIME GO?", "ALIENS."]
+        ]
+      },
+      {
+        id: 'bernie-asking',
+        title: "Bernie Sanders Asking",
+        tier: 'Rare',
+        url: 'https://i.imgflip.com/3oevdk.jpg',
+        sliceColor: '#2563EB',
+        topText: "I AM ONCE AGAIN ASKING YOU",
+        bottomText: "FOR ANOTHER WHEEL SPIN",
+        captions: [
+          ["I AM ONCE AGAIN ASKING YOU", "FOR ANOTHER WHEEL SPIN"],
+          ["I AM ONCE AGAIN ASKING YOU", "TO FIX THE MERGE CONFLICT"],
+          ["I AM ONCE AGAIN ASKING YOU", "TO ACCEPT MY PULL REQUEST"]
+        ]
+      },
+      {
+        id: 'buff-doge-cheems',
+        title: "Buff Doge vs Cheems",
+        tier: 'Epic',
+        url: 'https://i.imgflip.com/43a45p.jpg',
+        sliceColor: '#A855F7',
+        topText: "PROGRAMMERS IN 1995 VS TODAY",
+        bottomText: "HELP MY DIV IS NOT CENTERED",
+        captions: [
+          ["PROGRAMMERS IN 1995 VS TODAY", "HELP MY DIV IS NOT CENTERED"],
+          ["SPINNING FOR MYTHIC TIER", "GETTING COMMON 10 TIMES"],
+          ["COMPILING C CODE IN ASSEMBLY", "CAN'T INSTALL NPM PACKAGE"]
+        ]
+      },
+      {
+        id: 'grim-reaper',
+        title: "Grim Reaper Knocking",
+        tier: 'Rare',
+        url: 'https://i.imgflip.com/3ob24f.jpg',
+        sliceColor: '#1D4ED8',
+        topText: "KNOCK KNOCK",
+        bottomText: "ANOTHER DANK MEME UNLOCKED",
+        captions: [
+          ["KNOCK KNOCK", "ANOTHER DANK MEME UNLOCKED"],
+          ["TIME TO REPLACE", "OLD OUTDATED MEMES"],
+          ["YOUR FREE TIME", "HAS BEEN CONSUMED"]
+        ]
+      },
+      {
+        id: 'pepe-frog',
+        title: "Feels Good Pepe",
+        tier: 'Legendary',
+        url: 'https://i.imgflip.com/1tl71a.jpg',
+        sliceColor: '#D97706',
+        topText: "WHEN YOU FINALLY UNLOCK",
+        bottomText: "THE LEGENDARY TIER MEME",
+        captions: [
+          ["WHEN YOU FINALLY UNLOCK", "THE LEGENDARY TIER MEME"],
+          ["FEELS GOOD MAN", "ABSOLUTE DANKNESS"],
+          ["WHEN ALL TESTS PASS", "FEELS GOOD MAN"]
+        ]
+      },
+      {
+        id: 'crying-wojak',
+        title: "Crying Wojak Mask",
+        tier: 'Common',
+        url: 'https://i.imgflip.com/49z18e.jpg',
+        sliceColor: '#14B8A6',
+        topText: "I DON'T EVEN CARE ABOUT MEMES",
+        bottomText: "(IS CRUCIAL TO COLLECT THEM ALL)",
+        captions: [
+          ["I DON'T EVEN CARE ABOUT MEMES", "(IS CRUCIAL TO COLLECT THEM ALL)"],
+          ["I LOVE WORKING OVERTIME", "(CRIES IN SPAGHETTI CODE)"],
+          ["NO I'M NOT ADDICTED TO SPINNING", "(SPINS FOR 8 HOURS)"]
+        ]
+      },
+      {
+        id: 'galaxy-brain',
+        title: "Galaxy Brain Expansion",
+        tier: 'Epic',
+        url: 'https://i.imgflip.com/1jwhww.jpg',
+        sliceColor: '#9333EA',
+        topText: "SPINNING THE MEME WHEEL",
+        bottomText: "ACHIEVING ASCENSION",
+        captions: [
+          ["SPINNING THE MEME WHEEL", "ACHIEVING ASCENSION"],
+          ["COPYING FROM STACKOVERFLOW", "WRITING CODE WITH AI"],
+          ["READING THE DOCUMENTATION", "GUESSING UNTIL IT WORKS"]
+        ]
+      },
+      {
+        id: 'side-eye-chloe',
+        title: "Side Eye Chloe",
+        tier: 'Common',
+        url: 'https://i.imgflip.com/10m1.jpg',
+        sliceColor: '#0D9488',
+        topText: "WHEN SOMEONE SAYS",
+        bottomText: "MEMES ARE NOT ART",
+        captions: [
+          ["WHEN SOMEONE SAYS", "MEMES ARE NOT ART"],
+          ["LOOKING AT THE COMPILER", "THROWING 100 WARNINGS"],
+          ["WHEN YOU SEE A NORMIE", "POST AN OLD MEME"]
+        ]
+      },
+      {
+        id: 'bad-luck-brian',
+        title: "Bad Luck Brian",
+        tier: 'Common',
+        url: 'https://i.imgflip.com/1bip.jpg',
+        sliceColor: '#10B981',
+        topText: "SPINS MEME WHEEL",
+        bottomText: "SLICES SHUFFLE ON MYTHIC",
+        captions: [
+          ["SPINS MEME WHEEL", "SLICES SHUFFLE ON MYTHIC"],
+          ["WRITES 1000 LINES OF CODE", "FORGOT TO SAVE"],
+          ["BUYS HIGH TIER TICKETS", "WINS COMFY SOCKS"]
+        ]
+      },
+      {
+        id: 'mocking-spongebob',
+        title: "Mocking Spongebob",
+        tier: 'Rare',
+        url: 'https://i.imgflip.com/1otk96.jpg',
+        sliceColor: '#3B82F6',
+        topText: "yOu cAnT jUsT sPin tHe wHeEl",
+        bottomText: "YoU CaNt jUsT sPin tHe wHeEl",
+        captions: [
+          ["yOu cAnT jUsT sPin tHe wHeEl", "YoU CaNt jUsT sPin tHe wHeEl"],
+          ["iT wORkS oN mY LoCaL mAcHiNe", "iT wORkS oN mY LoCaL mAcHiNe"],
+          ["yOu nEeD tO gO tO sLeEp", "yOu nEeD tO gO tO sLeEp"]
+        ]
+      },
+      {
+        id: 'is-this-a-pigeon',
+        title: "Is This A Pigeon",
+        tier: 'Common',
+        url: 'https://i.imgflip.com/1o00in.jpg',
+        sliceColor: '#059669',
+        topText: "IS THIS A MYTHIC TIER?",
+        bottomText: "NO, IT'S A COMMON AGAIN",
+        captions: [
+          ["IS THIS A MYTHIC TIER?", "NO, IT'S A COMMON AGAIN"],
+          ["IS THIS A BUG?", "NO, IT'S A FEATURE"],
+          ["IS THIS A DANK MEME?", "ABSOLUTELY YES"]
+        ]
+      },
+      {
+        id: 'this-is-fine',
+        title: "This Is Fine Dog",
+        tier: 'Legendary',
+        url: 'https://i.imgflip.com/wxica.jpg',
+        sliceColor: '#F59E0B',
+        topText: "THIS IS FINE",
+        bottomText: "EVERYTHING IS ABSOLUTELY FINE",
+        captions: [
+          ["THIS IS FINE", "EVERYTHING IS ABSOLUTELY FINE"],
+          ["30 MERGE CONFLICTS", "THIS IS FINE"],
+          ["DEADLINE IN 10 MINUTES", "THIS IS FINE"]
+        ]
+      },
+      {
+        id: 'kombucha-girl',
+        title: "Kombucha Girl",
+        tier: 'Epic',
+        url: 'https://i.imgflip.com/3acd7j.jpg',
+        sliceColor: '#7E22CE',
+        topText: "WELL... NO.",
+        bottomText: "BUT ACTUALLY... YES!",
+        captions: [
+          ["WELL... NO.", "BUT ACTUALLY... YES!"],
+          ["ANOTHER COMMON SLICE?", "WELL WAIT, IT HAS GREAT CAPTIONS"],
+          ["STOPPING AFTER THIS SPIN?", "WELL... MAYBE ONE MORE"]
+        ]
+      },
+      {
+        id: 'guy-behind-tree',
+        title: "Guy Hiding Behind Tree",
+        tier: 'Rare',
+        url: 'https://i.imgflip.com/32a930.jpg',
+        sliceColor: '#2563EB',
+        topText: "ME SPOTTING A MYTHIC SLICE",
+        bottomText: "ON THE WHEEL",
+        captions: [
+          ["ME SPOTTING A MYTHIC SLICE", "ON THE WHEEL"],
+          ["ME SPOTTING A FRESH COFFEE", "IN THE KITCHEN"],
+          ["ME WATCHING THE CODE", "COMPILE WITH ZERO ERRORS"]
+        ]
+      },
+      {
+        id: 'npc-wojak',
+        title: "NPC Wojak",
+        tier: 'Common',
+        url: 'https://i.imgflip.com/2cp12k.jpg',
+        sliceColor: '#10B981',
+        topText: "I MUST PRESS SPIN",
+        bottomText: "BECAUSE THE BUTTON IS THERE",
+        captions: [
+          ["I MUST PRESS SPIN", "BECAUSE THE BUTTON IS THERE"],
+          ["I MUST DRINK COFFEE", "BECAUSE IT IS MORNING"],
+          ["I MUST USE DARK MODE", "BECAUSE I AM A PROGRAMMER"]
+        ]
+      },
+      {
+        id: 'emotional-damage',
+        title: "Emotional Damage",
+        tier: 'Mythic',
+        url: 'https://i.imgflip.com/65939a.jpg',
+        sliceColor: '#EF4444',
+        topText: "LANDS ON COMMON SLICE",
+        bottomText: "EMOTIONAL DAMAGE!",
+        captions: [
+          ["LANDS ON COMMON SLICE", "EMOTIONAL DAMAGE!"],
+          ["CODE FAILS IN DEMO", "EMOTIONAL DAMAGE!"],
+          ["WI-FI CUTS OFF AT 99%", "EMOTIONAL DAMAGE!"]
+        ]
+      },
+      {
+        id: 'always-has-been',
+        title: "Always Has Been",
+        tier: 'Mythic',
+        url: 'https://i.imgflip.com/46e43q.jpg',
+        sliceColor: '#DC2626',
+        topText: "WAIT, IT'S ALL DANK MEMES?",
+        bottomText: "ALWAYS HAS BEEN.",
+        captions: [
+          ["WAIT, IT'S ALL DANK MEMES?", "ALWAYS HAS BEEN."],
+          ["WAIT, IT'S ALL JAVASCRIPT?", "ALWAYS HAS BEEN."],
+          ["WAIT, THE WHEEL IS ADDICTIVE?", "ALWAYS HAS BEEN."]
+        ]
+      }
+    ];
+
+    let TOTAL_MEME_POOL = [...FALLBACK_MEMES_POOL];
+    let ACTIVE_WHEEL_SLICES = [];
+    const WHEEL_SLICE_COUNT = 15;
+    const IMAGE_CACHE = new Map();
+
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playTick() {
+        if (this.muted) return;
+        this.init();
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(450, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(70, this.ctx.currentTime + 0.04);
+
+        gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.04);
+      }
+
+      playSpinHum() {
+        if (this.muted) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(130, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(320, this.ctx.currentTime + 0.5);
+
+        gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.5);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.5);
+      }
+
+      playWinFanfare(tier) {
+        if (this.muted) return;
+        this.init();
+
+        const now = this.ctx.currentTime;
+
+        if (tier === 'Common' || tier === 'Rare') {
+          const notes = [261.63, 329.63, 392.00, 523.25];
+          notes.forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+
+            gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.25);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.25);
+          });
+        } else {
+          const notes = [392.00, 523.25, 659.25, 783.99, 1046.50];
+          notes.forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = tier === 'Mythic' ? 'sawtooth' : 'square';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+
+            gain.gain.setValueAtTime(0.22, now + idx * 0.09);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.38);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(now + idx * 0.09);
+            osc.stop(now + idx * 0.09 + 0.38);
+          });
+        }
+      }
+    }
+
+    const audioFX = new SoundEngine();
+
+    class ConfettiSystem {
+      constructor() {
+        this.canvas = document.getElementById('confetti-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.particles = [];
+        this.animId = null;
+        this.resize();
+
+        window.addEventListener('resize', () => this.resize());
+      }
+
+      resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+      }
+
+      burst(count = 140) {
+        const colors = ['#F59E0B', '#EF4444', '#EC4899', '#8B5CF6', '#10B981', '#3B82F6'];
+        const emojis = ['🗿', '🔥', '👑', '✨', '⚡', '🎉'];
+
+        for (let i = 0; i < count; i++) {
+          this.particles.push({
+            x: this.canvas.width / 2,
+            y: this.canvas.height / 2,
+            vx: (Math.random() - 0.5) * 24,
+            vy: (Math.random() - 0.7) * 24,
+            size: Math.random() * 10 + 6,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            emoji: Math.random() > 0.65 ? emojis[Math.floor(Math.random() * emojis.length)] : null,
+            rotation: Math.random() * 360,
+            vRot: (Math.random() - 0.5) * 12,
+            gravity: 0.38,
+            opacity: 1
+          });
+        }
+
+        if (!this.animId) {
+          this.animate();
+        }
+      }
+
+      animate() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+          const p = this.particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.rotation += p.vRot;
+          p.opacity -= 0.008;
+
+          this.ctx.save();
+          this.ctx.globalAlpha = Math.max(0, p.opacity);
+          this.ctx.translate(p.x, p.y);
+          this.ctx.rotate((p.rotation * Math.PI) / 180);
+
+          if (p.emoji) {
+            this.ctx.font = '22px sans-serif';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(p.emoji, 0, 0);
+          } else {
+            this.ctx.fillStyle = p.color;
+            this.ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          }
+
+          this.ctx.restore();
+
+          if (p.opacity <= 0 || p.y > this.canvas.height + 50) {
+            this.particles.splice(i, 1);
+          }
+        }
+
+        if (this.particles.length > 0) {
+          this.animId = requestAnimationFrame(() => this.animate());
+        } else {
+          this.animId = null;
+        }
+      }
+    }
+
+    const confetti = new ConfettiSystem();
+
+    function preloadImage(url) {
+      if (IMAGE_CACHE.has(url)) return Promise.resolve(IMAGE_CACHE.get(url));
+
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          IMAGE_CACHE.set(url, img);
+          resolve(img);
+        };
+        img.onerror = () => {
+          IMAGE_CACHE.set(url, null);
+          resolve(null);
+        };
+        img.src = url;
+      });
+    }
+
+    // Randomly pick N unique memes from pool for active wheel slices
+    function getRandomWheelSlices(count = WHEEL_SLICE_COUNT) {
+      const shuffled = [...TOTAL_MEME_POOL].sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, Math.min(count, TOTAL_MEME_POOL.length));
+    }
+
+    class MemeWheel {
+      constructor() {
+        this.canvas = document.getElementById('wheel-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.slices = ACTIVE_WHEEL_SLICES;
+        this.numSlices = this.slices.length || WHEEL_SLICE_COUNT;
+        this.sliceAngle = (2 * Math.PI) / this.numSlices;
+
+        this.currentAngle = 0; // Radians
+        this.angularVelocity = 0;
+        this.friction = 0.985;
+        this.isSpinning = false;
+
+        this.tickerPin = document.getElementById('ticker-pin');
+        this.lastSliceIndex = -1;
+
+        this.onSpinComplete = null;
+      }
+
+      updateSlices(newSlices) {
+        this.slices = newSlices;
+        this.numSlices = this.slices.length;
+        this.sliceAngle = (2 * Math.PI) / this.numSlices;
+        this.updateTierBreakdownUI();
+        this.draw();
+      }
+
+      updateTierBreakdownUI() {
+        const counts = { Common: 0, Rare: 0, Epic: 0, Legendary: 0, Mythic: 0 };
+        this.slices.forEach(s => {
+          if (counts[s.tier] !== undefined) counts[s.tier]++;
+        });
+
+        document.getElementById('prob-common').innerText = `${counts.Common} / ${this.numSlices} Slices`;
+        document.getElementById('prob-rare').innerText = `${counts.Rare} / ${this.numSlices} Slices`;
+        document.getElementById('prob-epic').innerText = `${counts.Epic} / ${this.numSlices} Slices`;
+        document.getElementById('prob-legendary').innerText = `${counts.Legendary} / ${this.numSlices} Slices`;
+        document.getElementById('prob-mythic').innerText = `${counts.Mythic} / ${this.numSlices} Slices`;
+      }
+
+      draw() {
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+        const radius = w / 2 - 20;
+        const center = w / 2;
+
+        this.ctx.clearRect(0, 0, w, h);
+
+        this.ctx.save();
+        this.ctx.translate(center, center);
+        this.ctx.rotate(this.currentAngle);
+
+        // Draw Slices
+        for (let i = 0; i < this.numSlices; i++) {
+          const meme = this.slices[i];
+          if (!meme) continue;
+
+          const startAngle = i * this.sliceAngle;
+          const endAngle = startAngle + this.sliceAngle;
+
+          // Slice Wedge
+          this.ctx.beginPath();
+          this.ctx.moveTo(0, 0);
+          this.ctx.arc(0, 0, radius, startAngle, endAngle);
+          this.ctx.closePath();
+          this.ctx.fillStyle = meme.sliceColor || '#3B82F6';
+          this.ctx.fill();
+
+          this.ctx.strokeStyle = '#090d16';
+          this.ctx.lineWidth = 3;
+          this.ctx.stroke();
+
+          // Draw Slice Meme Thumbnail if loaded
+          const img = IMAGE_CACHE.get(meme.url);
+          const midAngle = startAngle + this.sliceAngle / 2;
+
+          this.ctx.save();
+          this.ctx.rotate(midAngle);
+
+          if (img) {
+            this.ctx.save();
+            const imgRadius = 24;
+            const imgDist = radius - 60;
+
+            this.ctx.beginPath();
+            this.ctx.arc(imgDist, 0, imgRadius, 0, Math.PI * 2);
+            this.ctx.clip();
+            this.ctx.drawImage(img, imgDist - imgRadius, -imgRadius, imgRadius * 2, imgRadius * 2);
+
+            this.ctx.restore();
+
+            // Border around thumbnail
+            this.ctx.beginPath();
+            this.ctx.arc(radius - 60, 0, 24, 0, Math.PI * 2);
+            this.ctx.strokeStyle = '#ffffff';
+            this.ctx.lineWidth = 2;
+            this.ctx.stroke();
+          }
+
+          // Slice Title Label Text
+          this.ctx.textAlign = 'right';
+          this.ctx.fillStyle = '#ffffff';
+          this.ctx.font = 'bold 12px Inter, sans-serif';
+          this.ctx.shadowColor = 'rgba(0,0,0,0.9)';
+          this.ctx.shadowBlur = 5;
+
+          let label = meme.title;
+          if (label.length > 13) label = label.substring(0, 11) + '..';
+
+          const textX = img ? radius - 95 : radius - 25;
+          this.ctx.fillText(label, textX, 4);
+
+          this.ctx.restore();
+        }
+
+        this.ctx.restore();
+
+        // Outer Rim Design with LED lights
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.arc(center, center, radius, 0, Math.PI * 2);
+        this.ctx.strokeStyle = '#f59e0b';
+        this.ctx.lineWidth = 12;
+        this.ctx.stroke();
+
+        const numLights = 28;
+        for (let i = 0; i < numLights; i++) {
+          const angle = (i * (2 * Math.PI)) / numLights;
+          const lx = center + (radius + 1) * Math.cos(angle);
+          const ly = center + (radius + 1) * Math.sin(angle);
+
+          this.ctx.beginPath();
+          this.ctx.arc(lx, ly, 4, 0, Math.PI * 2);
+          this.ctx.fillStyle = (i % 2 === 0) ? '#ffffff' : '#fbbf24';
+          this.ctx.fill();
+        }
+        this.ctx.restore();
+      }
+
+      spin() {
+        if (this.isSpinning) return;
+
+        this.isSpinning = true;
+        this.angularVelocity = Math.random() * 0.22 + 0.42; // Torque
+        audioFX.playSpinHum();
+
+        this.animate();
+      }
+
+      animate() {
+        if (!this.isSpinning) return;
+
+        this.currentAngle += this.angularVelocity;
+        this.angularVelocity *= this.friction;
+
+        // Detect slice boundary hit for pointer pin (Top position = 270 deg = 3*PI/2)
+        const normalizedAngle = (2 * Math.PI - (this.currentAngle % (2 * Math.PI))) % (2 * Math.PI);
+        const pointerAngle = (normalizedAngle + (3 * Math.PI / 2)) % (2 * Math.PI);
+        const currentSliceIndex = Math.floor(pointerAngle / this.sliceAngle);
+
+        if (currentSliceIndex !== this.lastSliceIndex) {
+          this.lastSliceIndex = currentSliceIndex;
+          audioFX.playTick();
+
+          this.tickerPin.classList.add('ticker-hit');
+          setTimeout(() => this.tickerPin.classList.remove('ticker-hit'), 50);
+        }
+
+        this.draw();
+
+        if (this.angularVelocity < 0.0012) {
+          this.angularVelocity = 0;
+          this.isSpinning = false;
+          this.draw();
+
+          const winningMeme = this.slices[currentSliceIndex];
+          if (this.onSpinComplete) {
+            this.onSpinComplete(winningMeme);
+          }
+        } else {
+          requestAnimationFrame(() => this.animate());
+        }
+      }
+    }
+
+    const AppState = {
+      spins: 0,
+      unlocked: {}, // { memeId: count }
+      currentFilter: 'all',
+      searchQuery: '',
+
+      // 4-Row Pagination Parameters
+      currentPage: 1,
+
+      getItemsPerPage() {
+        // Responsive calculation: 
+        // Desktop (md/lg): 3 cols x 4 rows = 12 items
+        // Mobile: 2 cols x 4 rows = 8 items
+        return window.innerWidth >= 768 ? 12 : 8;
+      },
+
+      init() {
+        this.loadFromStorage();
+        this.updateStatsUI();
+
+        window.addEventListener('resize', () => {
+          renderVaultGrid();
+        });
+      },
+
+      loadFromStorage() {
+        const saved = localStorage.getItem('meme_fortune_real_state_v5');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            this.spins = parsed.spins || 0;
+            this.unlocked = parsed.unlocked || {};
+          } catch (e) {
+            console.error('Failed to parse state:', e);
+          }
+        }
+      },
+
+      saveToStorage() {
+        localStorage.setItem('meme_fortune_real_state_v5', JSON.stringify({
+          spins: this.spins,
+          unlocked: this.unlocked
+        }));
+      },
+
+      recordSpin(meme) {
+        this.spins++;
+        this.unlocked[meme.id] = (this.unlocked[meme.id] || 0) + 1;
+        this.saveToStorage();
+        this.updateStatsUI();
+      },
+
+      getUnlockedCount() {
+        return Object.keys(this.unlocked).length;
+      },
+
+      getRankTitle() {
+        const count = this.getUnlockedCount();
+        if (count <= 3) return 'Lurker 🗿';
+        if (count <= 8) return 'Normie 🐣';
+        if (count <= 16) return 'Shitposter 💩';
+        if (count <= 32) return 'Meme Lord 👑';
+        if (count <= 50) return 'Dank Master 🔥';
+        return 'Giga-Meme God 🗿👑';
+      },
+
+      updateStatsUI() {
+        document.getElementById('stat-spins').innerText = this.spins;
+        document.getElementById('stat-rank').innerText = this.getRankTitle();
+
+        const unlockedCount = this.getUnlockedCount();
+        const totalMemes = TOTAL_MEME_POOL.length;
+        const percent = totalMemes > 0 ? Math.round((unlockedCount / totalMemes) * 100) : 0;
+
+        const badge = document.getElementById('collection-badge');
+        if (badge) {
+          badge.innerText = `${unlockedCount} / ${totalMemes} Unlocked (${percent}%)`;
+        }
+
+        const progressBar = document.getElementById('vault-progress-bar');
+        if (progressBar) {
+          progressBar.style.width = `${percent}%`;
+        }
+      }
+    };
+
+    function initPlayerIdentity() {
+      let playerId = localStorage.getItem('meme_fortune_player_id');
+      if (!playerId) {
+        playerId = 'player_' + Math.random().toString(36).substring(2, 10);
+        localStorage.setItem('meme_fortune_player_id', playerId);
+      }
+
+      let playerName = localStorage.getItem('meme_fortune_player_name');
+      if (!playerName) {
+        playerName = generateGermanName();
+        localStorage.setItem('meme_fortune_player_name', playerName);
+      }
+
+      updatePlayerUI();
+
+      if (appInsightsInstance) {
+        try {
+          appInsightsInstance.setAuthenticatedUserContext(playerId, playerName);
+          appInsightsInstance.trackEvent({
+            name: 'PlayerConnected',
+            properties: {
+              PlayerId: playerId,
+              PlayerName: playerName,
+              ConnectedAt: new Date().toISOString()
+            }
+          });
+        } catch (e) {
+          console.warn("Telemetry connection failed:", e);
+        }
+      }
+    }
+
+    function setPlayerName(newName) {
+      if (!newName || !newName.trim()) return;
+      const cleaned = newName.trim();
+      localStorage.setItem('meme_fortune_player_name', cleaned);
+      updatePlayerUI();
+
+      const playerId = localStorage.getItem('meme_fortune_player_id');
+      if (appInsightsInstance) {
+        try {
+          appInsightsInstance.setAuthenticatedUserContext(playerId, cleaned);
+          appInsightsInstance.trackEvent({
+            name: 'PlayerConnected',
+            properties: {
+              PlayerId: playerId,
+              PlayerName: cleaned,
+              UpdatedName: true
+            }
+          });
+        } catch (e) {
+          console.warn("Telemetry track error:", e);
+        }
+      }
+      showToast(`Spielername gesetzt: ${cleaned}`);
+    }
+
+    function updatePlayerUI() {
+      const name = localStorage.getItem('meme_fortune_player_name') || 'Schnüffelnder Adler';
+      const displayEl = document.getElementById('player-nickname-display');
+      if (displayEl) displayEl.innerText = name;
+    }
+
+    let wheelInstance = null;
+    let currentModalMeme = null;
+
+    async function fetchLiveMemes() {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+        const res = await fetch('https://api.imgflip.com/get_memes', { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        const data = await res.json();
+
+        if (data.success && data.data && data.data.memes && data.data.memes.length >= 10) {
+          const fetchedMemes = data.data.memes;
+          const tiers = ['Common', 'Rare', 'Epic', 'Legendary', 'Mythic'];
+          const colors = {
+            Common: '#10B981',
+            Rare: '#3B82F6',
+            Epic: '#A855F7',
+            Legendary: '#F59E0B',
+            Mythic: '#EF4444'
+          };
+
+          const apiMemes = fetchedMemes.map((m, i) => {
+            let tier = tiers[i % 5];
+            if (i < 20) tier = 'Common';
+            else if (i < 45) tier = 'Rare';
+            else if (i < 70) tier = 'Epic';
+            else if (i < 90) tier = 'Legendary';
+            else tier = 'Mythic';
+
+            return {
+              id: m.id,
+              title: m.name,
+              tier: tier,
+              url: m.url,
+              sliceColor: colors[tier],
+              topText: "WHEN YOU SPIN THE WHEEL",
+              bottomText: "AND GET A DANK MEME",
+              captions: [
+                ["WHEN YOU SPIN THE WHEEL", "AND GET A DANK MEME"],
+                ["ME SPOTTING THIS MEME", "IN THE VAULT"],
+                ["TOP TEXT GOES HERE", "BOTTOM TEXT GOES HERE"]
+              ]
+            };
+          });
+
+          const existingIds = new Set(FALLBACK_MEMES_POOL.map(m => m.id));
+          const uniqueApiMemes = apiMemes.filter(m => !existingIds.has(m.id));
+          TOTAL_MEME_POOL = [...FALLBACK_MEMES_POOL, ...uniqueApiMemes];
+        }
+      } catch (err) {
+        console.warn("Using offline fallback meme pool:", err);
+        TOTAL_MEME_POOL = [...FALLBACK_MEMES_POOL];
+      }
+
+      ACTIVE_WHEEL_SLICES = getRandomWheelSlices(WHEEL_SLICE_COUNT);
+      await Promise.all(ACTIVE_WHEEL_SLICES.map(m => preloadImage(m.url)));
+
+      if (wheelInstance) {
+        wheelInstance.updateSlices(ACTIVE_WHEEL_SLICES);
+      }
+      AppState.updateStatsUI();
+      renderVaultGrid();
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      AppState.init();
+      initPlayerIdentity();
+
+      ACTIVE_WHEEL_SLICES = getRandomWheelSlices(WHEEL_SLICE_COUNT);
+      wheelInstance = new MemeWheel();
+      wheelInstance.updateSlices(ACTIVE_WHEEL_SLICES);
+
+      await fetchLiveMemes();
+
+      const spinBtn = document.getElementById('spin-btn');
+      const centerBtn = document.getElementById('center-spin-btn');
+      const shuffleBtn = document.getElementById('shuffle-wheel-btn');
+      const audioBtn = document.getElementById('audio-toggle');
+      const audioIcon = document.getElementById('audio-icon');
+
+      const triggerSpin = () => {
+        if (wheelInstance.isSpinning) return;
+        spinBtn.disabled = true;
+        spinBtn.classList.add('opacity-50');
+        shuffleBtn.disabled = true;
+        wheelInstance.spin();
+      };
+
+      const triggerShuffle = () => {
+        if (wheelInstance.isSpinning) return;
+        ACTIVE_WHEEL_SLICES = getRandomWheelSlices(WHEEL_SLICE_COUNT);
+
+        Promise.all(ACTIVE_WHEEL_SLICES.map(m => preloadImage(m.url))).then(() => {
+          wheelInstance.updateSlices(ACTIVE_WHEEL_SLICES);
+          showToast('Wheel slices randomized!');
+        });
+      };
+
+      spinBtn.addEventListener('click', triggerSpin);
+      centerBtn.addEventListener('click', triggerSpin);
+      shuffleBtn.addEventListener('click', triggerShuffle);
+
+      // Spacebar shortcut
+      window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && e.target.tagName !== 'INPUT') {
+          e.preventDefault();
+          triggerSpin();
+        }
+      });
+
+      // Spin Complete Listener
+      wheelInstance.onSpinComplete = (meme) => {
+        spinBtn.disabled = false;
+        spinBtn.classList.remove('opacity-50');
+        shuffleBtn.disabled = false;
+
+        AppState.recordSpin(meme);
+        addRecentPullLog(meme);
+        renderVaultGrid();
+
+        if (appInsightsInstance) {
+          try {
+            const playerId = localStorage.getItem('meme_fortune_player_id');
+            const playerName = localStorage.getItem('meme_fortune_player_name');
+            const totalPulls = AppState.unlocked[meme.id] || 1;
+
+            appInsightsInstance.trackEvent({
+              name: 'MemeSpin',
+              properties: {
+                PlayerId: playerId,
+                PlayerName: playerName,
+                MemeTitle: meme.title,
+                MemeTier: meme.tier,
+                IsMythicOrLegendary: (meme.tier === 'Mythic' || meme.tier === 'Legendary')
+              },
+              measurements: {
+                TotalPullsByPlayer: totalPulls
+              }
+            });
+
+            appInsightsInstance.trackMetric({
+              name: 'TotalSpins',
+              average: AppState.spins
+            });
+          } catch (e) {
+            console.warn("Telemetry trackEvent failed:", e);
+          }
+        }
+
+        if (meme.tier === 'Epic' || meme.tier === 'Legendary' || meme.tier === 'Mythic') {
+          confetti.burst(160);
+        }
+
+        audioFX.playWinFanfare(meme.tier);
+        openMemeStudioModal(meme);
+      };
+
+      // Audio Toggle
+      audioBtn.addEventListener('click', () => {
+        audioFX.muted = !audioFX.muted;
+        audioIcon.innerText = audioFX.muted ? '🔇' : '🔊';
+      });
+
+      // German Player Name UI Controls
+      setupPlayerNameControls();
+
+      // Vault Filter Chips
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.filter-btn').forEach(b => {
+            b.classList.remove('bg-amber-500', 'text-slate-950');
+            b.classList.add('text-slate-400');
+          });
+
+          e.target.classList.add('bg-amber-500', 'text-slate-950');
+          e.target.classList.remove('text-slate-400');
+
+          AppState.currentFilter = e.target.getAttribute('data-filter');
+          AppState.currentPage = 1;
+          renderVaultGrid();
+        });
+      });
+
+      // Search Listener
+      document.getElementById('search-input').addEventListener('input', (e) => {
+        AppState.searchQuery = e.target.value.toLowerCase().trim();
+        AppState.currentPage = 1;
+        renderVaultGrid();
+      });
+
+      // Reset Vault Button
+      document.getElementById('reset-progress-btn').addEventListener('click', () => {
+        AppState.spins = 0;
+        AppState.unlocked = {};
+        AppState.saveToStorage();
+        AppState.updateStatsUI();
+        AppState.currentPage = 1;
+        renderVaultGrid();
+        showToast('Vault collection reset!');
+      });
+
+      setupModalAndStudioListeners();
+    });
+
+    function setupPlayerNameControls() {
+      const modal = document.getElementById('player-modal');
+      const editBtn = document.getElementById('edit-player-btn');
+      const quickRandomBtn = document.getElementById('randomize-player-btn');
+      const modalRandomBtn = document.getElementById('player-name-random-btn');
+      const saveBtn = document.getElementById('player-name-save-btn');
+      const input = document.getElementById('player-name-input');
+
+      const openPlayerModal = () => {
+        input.value = localStorage.getItem('meme_fortune_player_name') || generateGermanName();
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+          modal.classList.remove('opacity-0');
+        }, 10);
+      };
+
+      const closePlayerModal = () => {
+        modal.classList.add('opacity-0');
+        setTimeout(() => {
+          modal.classList.add('hidden');
+        }, 300);
+      };
+
+      editBtn.onclick = openPlayerModal;
+
+      quickRandomBtn.onclick = () => {
+        const newName = generateGermanName();
+        setPlayerName(newName);
+      };
+
+      modalRandomBtn.onclick = () => {
+        input.value = generateGermanName();
+      };
+
+      saveBtn.onclick = () => {
+        setPlayerName(input.value);
+        closePlayerModal();
+      };
+
+      modal.onclick = (e) => {
+        if (e.target === modal) closePlayerModal();
+      };
+    }
+
+    function addRecentPullLog(meme) {
+      const list = document.getElementById('recent-pulls-list');
+      if (!list) return;
+
+      if (list.children.length === 1 && list.children[0].classList.contains('text-center')) {
+        list.innerHTML = '';
+      }
+
+      const item = document.createElement('div');
+      item.className = 'flex items-center justify-between p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs animate-bounce-short';
+
+      let tierColorClass = 'text-emerald-400';
+      if (meme.tier === 'Rare') tierColorClass = 'text-blue-400';
+      if (meme.tier === 'Epic') tierColorClass = 'text-purple-400';
+      if (meme.tier === 'Legendary') tierColorClass = 'text-amber-400';
+      if (meme.tier === 'Mythic') tierColorClass = 'text-rose-500 font-black';
+
+      item.innerHTML = `
+                <div class="flex items-center space-x-2.5 truncate">
+                    <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: ${meme.sliceColor}"></span>
+                    <span class="font-bold text-slate-200 truncate">${meme.title}</span>
+                </div>
+                <span class="${tierColorClass} text-[10px] uppercase font-black tracking-wider ml-2">${meme.tier}</span>
+            `;
+
+      list.insertBefore(item, list.firstChild);
+
+      if (list.children.length > 10) {
+        list.removeChild(list.lastChild);
+      }
+    }
+
+    function renderVaultGrid() {
+      const grid = document.getElementById('meme-vault-grid');
+      if (!grid) return;
+
+      const filteredMemes = TOTAL_MEME_POOL.filter(meme => {
+        if (AppState.currentFilter !== 'all' && meme.tier !== AppState.currentFilter) {
+          return false;
+        }
+        if (AppState.searchQuery && !meme.title.toLowerCase().includes(AppState.searchQuery)) {
+          return false;
+        }
+        return true;
+      });
+
+      const itemsPerPage = AppState.getItemsPerPage();
+      const totalItems = filteredMemes.length;
+      const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+
+      if (AppState.currentPage > totalPages) AppState.currentPage = totalPages;
+      if (AppState.currentPage < 1) AppState.currentPage = 1;
+
+      const startIndex = (AppState.currentPage - 1) * itemsPerPage;
+      const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+      const paginatedMemes = filteredMemes.slice(startIndex, endIndex);
+
+      grid.innerHTML = '';
+
+      if (paginatedMemes.length === 0) {
+        grid.innerHTML = `
+                    <div class="col-span-full flex flex-col items-center justify-center py-16 text-slate-500 text-sm italic">
+                        <span>🔍 No memes found matching filter/search!</span>
+                    </div>
+                `;
+      } else {
+        paginatedMemes.forEach(meme => {
+          const count = AppState.unlocked[meme.id] || 0;
+          const isUnlocked = count > 0;
+
+          const card = document.createElement('div');
+          card.className = `glass-card rounded-2xl p-3 flex flex-col items-center justify-between cursor-pointer relative overflow-hidden group ${isUnlocked ? 'border-slate-700/60' : 'opacity-60 grayscale'
+            }`;
+
+          card.style.borderTop = `4px solid ${meme.sliceColor}`;
+
+          if (isUnlocked) {
+            card.onclick = () => openMemeStudioModal(meme);
+          }
+
+          card.innerHTML = `
+                        <div class="w-full flex items-center justify-between text-[10px] font-bold text-slate-400 mb-2">
+                            <span style="color: ${meme.sliceColor}">${meme.tier}</span>
+                            ${isUnlocked ? `<span class="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-black">x${count}</span>` : '🔒 Locked'}
+                        </div>
+
+                        <div class="w-full aspect-square rounded-xl bg-slate-950 border border-slate-800 overflow-hidden relative mb-2 flex items-center justify-center">
+                            ${isUnlocked ?
+              `<img src="${meme.url}" alt="${meme.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" crossorigin="anonymous">` :
+              `<div class="flex flex-col items-center"><span class="text-3xl text-slate-700 font-black">?</span><span class="text-[9px] text-slate-600 font-bold uppercase mt-1">Spin to unlock</span></div>`
+            }
+                        </div>
+
+                        <h4 class="text-xs font-extrabold text-slate-200 text-center truncate w-full">
+                            ${isUnlocked ? meme.title : '???'}
+                        </h4>
+                    `;
+
+          grid.appendChild(card);
+        });
+      }
+
+      // Pagination Controls
+      document.getElementById('page-item-range').innerText = totalItems > 0 ? `${startIndex + 1} - ${endIndex}` : '0';
+      document.getElementById('page-item-total').innerText = totalItems;
+
+      const prevBtn = document.getElementById('pg-prev-btn');
+      const nextBtn = document.getElementById('pg-next-btn');
+
+      prevBtn.disabled = AppState.currentPage <= 1;
+      nextBtn.disabled = AppState.currentPage >= totalPages;
+
+      prevBtn.onclick = () => {
+        if (AppState.currentPage > 1) {
+          AppState.currentPage--;
+          renderVaultGrid();
+        }
+      };
+
+      nextBtn.onclick = () => {
+        if (AppState.currentPage < totalPages) {
+          AppState.currentPage++;
+          renderVaultGrid();
+        }
+      };
+
+      const numbersContainer = document.getElementById('pg-numbers-container');
+      numbersContainer.innerHTML = '';
+
+      for (let p = 1; p <= totalPages; p++) {
+        if (totalPages > 6 && Math.abs(p - AppState.currentPage) > 2 && p !== 1 && p !== totalPages) {
+          if (p === 2 || p === totalPages - 1) {
+            const dots = document.createElement('span');
+            dots.className = 'text-slate-600 text-xs font-bold px-1';
+            dots.innerText = '..';
+            numbersContainer.appendChild(dots);
+          }
+          continue;
+        }
+
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `w-7 h-7 rounded-lg text-xs font-extrabold transition-all ${p === AppState.currentPage
+          ? 'bg-amber-500 text-slate-950 shadow-md scale-105'
+          : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+          }`;
+        pageBtn.innerText = p;
+        pageBtn.onclick = () => {
+          AppState.currentPage = p;
+          renderVaultGrid();
+        };
+        numbersContainer.appendChild(pageBtn);
+      }
+    }
+
+    function renderMemeCanvas(canvas, meme, topText, bottomText, fontSize = 38, textColor = '#ffffff') {
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const img = IMAGE_CACHE.get(meme.url);
+
+      if (img) {
+        ctx.drawImage(img, 0, 0, w, h);
+      } else {
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = meme.sliceColor || '#3b82f6';
+        ctx.font = 'bold 24px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(meme.title, w / 2, h / 2);
+      }
+
+      ctx.fillStyle = textColor;
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = Math.max(3, Math.floor(fontSize / 7));
+      ctx.textAlign = 'center';
+      ctx.font = `900 ${fontSize}px Anton, Impact, sans-serif`;
+
+      if (topText) {
+        drawWrappedText(ctx, topText.toUpperCase(), w / 2, fontSize + 15, w - 40, fontSize * 1.15, true);
+      }
+
+      if (bottomText) {
+        drawWrappedText(ctx, bottomText.toUpperCase(), w / 2, h - 25, w - 40, fontSize * 1.15, false);
+      }
+    }
+
+    function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, isTop) {
+      const words = text.split(' ');
+      let line = '';
+      const lines = [];
+
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = ctx.measureText(testLine);
+        const testWidth = metrics.width;
+        if (testWidth > maxWidth && n > 0) {
+          lines.push(line);
+          line = words[n] + ' ';
+        } else {
+          line = testLine;
+        }
+      }
+      lines.push(line);
+
+      let startY = y;
+      if (!isTop) {
+        startY = y - (lines.length - 1) * lineHeight;
+      }
+
+      for (let i = 0; i < lines.length; i++) {
+        ctx.strokeText(lines[i].trim(), x, startY + i * lineHeight);
+        ctx.fillText(lines[i].trim(), x, startY + i * lineHeight);
+      }
+    }
+
+    function openMemeStudioModal(meme) {
+      currentModalMeme = meme;
+
+      const modal = document.getElementById('win-modal');
+      const tag = document.getElementById('modal-tier-tag');
+      const title = document.getElementById('modal-meme-title');
+      const cvs = document.getElementById('modal-meme-canvas');
+
+      const topInput = document.getElementById('input-top-text');
+      const bottomInput = document.getElementById('input-bottom-text');
+      const fontInput = document.getElementById('input-font-size');
+      const colorInput = document.getElementById('input-text-color');
+
+      tag.innerText = `${meme.tier} TIER PULL!`;
+      tag.style.backgroundColor = meme.sliceColor;
+      tag.style.color = (meme.tier === 'Legendary') ? '#1e1b4b' : '#ffffff';
+
+      title.innerText = meme.title;
+
+      topInput.value = meme.topText || "WHEN YOU SPIN THE WHEEL";
+      bottomInput.value = meme.bottomText || "AND GET A DANK MEME";
+
+      const updatePreview = () => {
+        renderMemeCanvas(
+          cvs,
+          meme,
+          topInput.value,
+          bottomInput.value,
+          parseInt(fontInput.value),
+          colorInput.value
+        );
+      };
+
+      topInput.oninput = updatePreview;
+      bottomInput.oninput = updatePreview;
+      fontInput.oninput = updatePreview;
+      colorInput.oninput = updatePreview;
+
+      preloadImage(meme.url).then(() => updatePreview());
+
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        modal.children[0].classList.remove('scale-90');
+        modal.children[0].classList.add('scale-100');
+      }, 10);
+    }
+
+    function setupModalAndStudioListeners() {
+      const modal = document.getElementById('win-modal');
+
+      document.getElementById('modal-close-btn').onclick = () => {
+        modal.classList.add('opacity-0');
+        modal.children[0].classList.remove('scale-100');
+        modal.children[0].classList.add('scale-90');
+
+        setTimeout(() => {
+          modal.classList.add('hidden');
+          ACTIVE_WHEEL_SLICES = getRandomWheelSlices(WHEEL_SLICE_COUNT);
+          Promise.all(ACTIVE_WHEEL_SLICES.map(m => preloadImage(m.url))).then(() => {
+            if (wheelInstance) wheelInstance.updateSlices(ACTIVE_WHEEL_SLICES);
+          });
+        }, 300);
+      };
+
+      // Auto-Caption Generator
+      document.getElementById('auto-caption-btn').onclick = () => {
+        if (!currentModalMeme) return;
+
+        const topInput = document.getElementById('input-top-text');
+        const bottomInput = document.getElementById('input-bottom-text');
+
+        if (currentModalMeme.captions && currentModalMeme.captions.length > 0) {
+          const randomPair = currentModalMeme.captions[Math.floor(Math.random() * currentModalMeme.captions.length)];
+          topInput.value = randomPair[0];
+          bottomInput.value = randomPair[1];
+        } else {
+          const genericCaptions = [
+            ["WHEN THE CODE WORKS", "ON THE FIRST TRY"],
+            ["ME EXPLAINING MEME LOGIC", "TO MY CAT"],
+            ["NOBODY:", "ME SPINNING THE WHEEL AGAIN"]
+          ];
+          const randomPair = genericCaptions[Math.floor(Math.random() * genericCaptions.length)];
+          topInput.value = randomPair[0];
+          bottomInput.value = randomPair[1];
+        }
+
+        topInput.dispatchEvent(new Event('input'));
+      };
+
+      // Download PNG Button
+      document.getElementById('download-meme-btn').onclick = () => {
+        const cvs = document.getElementById('modal-meme-canvas');
+
+        try {
+          const imageURI = cvs.toDataURL('image/png');
+          const link = document.createElement('a');
+          link.download = `${currentModalMeme.title.toLowerCase().replace(/\s+/g, '-')}-meme.png`;
+          link.href = imageURI;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          showToast('Meme PNG downloaded successfully!');
+        } catch (e) {
+          console.error('Canvas export restricted:', e);
+          showToast('Direct download blocked by browser CORS. Right-click image to save!');
+        }
+      };
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-msg');
+      const text = document.getElementById('toast-text');
+      if (!toast || !text) return;
+
+      text.innerText = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 2500);
+    }
+  </script>
+</body>
+
+</html>

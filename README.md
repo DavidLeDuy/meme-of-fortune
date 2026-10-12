@@ -1,15 +1,19 @@
-# meme-of-fortune
+# 🎰 Meme of Fortune
 
-HTML page for gambling addicted shitposter
+> **The ultimate HTML page for gambling-addicted shitposters.**
 
-just copy the main.html
+---
 
-ignore the stuff below
+## 🚀 Quick Start
 
-# Connection string for Application Insights
+To run the application, simply open `main.html` in a browser:
 
+## 🛠️ Deployment & Infrastructure
+
+This repository uses Terraform to manage deployment artifacts for Azure Static Web Apps and Application Insights.
+
+Get Connection String and Deployment Token
+```bash
 terraform output -raw app_insights_connection_string
-
-# Deployment token for Azure Static Web Apps
-
 terraform output -raw static_web_app_deployment_token
+```

@@ -1,5 +1,7 @@
 # 🎰 Meme of Fortune
 
+![Azure Deployment](https://github.com/DavidLeDuy/meme-of-fortune/actions/workflows/deploy.yml/badge.svg)
+
 > **The ultimate HTML page for gambling-addicted shitposters.**
 
 ---
